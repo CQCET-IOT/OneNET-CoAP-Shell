@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Response;
+import org.eclipse.californium.core.coap.Token;
+import org.eclipse.californium.elements.util.Bytes;
 import org.eclipse.californium.elements.util.StringUtil;
 import org.w3c.dom.Document;
 
@@ -91,6 +93,9 @@ public class PrintUtils {
 		else if (r.getOptions().toString().contains("application/link-format")) {
 			return cyan(prettyLink(r.getPayloadString()));
 		}
+		else if (r.getOptions().toString().contains("$sys")) { /* OneNET登录返回此种类型的ACK，payload中为后续通信的Token */
+			return cyan(prettyStream(r.getPayload()));
+		}
 		return r.getPayloadString();
 	}
 
@@ -133,6 +138,21 @@ public class PrintUtils {
 		}
 		catch (Exception e) {
 			return text;
+		}
+	}
+
+	/**
+	 * 字节流类型的payload，转化为十六进制进行显示
+	 * @param text
+	 * @return
+	 */
+	private static String prettyStream(byte[] text) {
+		try {
+			Token token = new Token(text);
+			return token.getAsString();
+		}
+		catch (Exception e) {
+			return text.toString();
 		}
 	}
 

@@ -40,9 +40,12 @@ import org.eclipse.californium.core.CoapObserveRelation;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.WebLink;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.eclipse.californium.core.coap.Request;
+import org.eclipse.californium.core.coap.Token;
 import org.eclipse.californium.core.network.CoapEndpoint;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.elements.exception.ConnectorException;
+import org.eclipse.californium.elements.util.Bytes;
 import org.eclipse.californium.elements.util.StringUtil;
 import org.eclipse.californium.scandium.DTLSConnector;
 import org.jline.terminal.Terminal;
@@ -332,6 +335,10 @@ public class CoapShellCommands implements ApplicationEventPublisherAware {
 			else {
 				CoapResponse response = coapClient.post(payloadContent,
 						coapContentType(format), coapContentType(accept));
+				/*
+				CoapResponse response = coapClient.post(payloadContent,
+						coapContentType(format), coapContentType(accept), token);
+				 */
 				result.append(PrintUtils.prettyPrint(response, requestInfo("POST", baseUri + path, async)));
 			}
 		}
