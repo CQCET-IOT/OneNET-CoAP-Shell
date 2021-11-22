@@ -67,18 +67,18 @@ public class PrintUtils {
 		String rtt = (r.getRTT() != null) ? "" + r.getRTT() : "";
 
 		StringBuilder sb = new StringBuilder();
-		sb.append(green("----------------------------------- Response -----------------------------------")).append(StringUtil.lineSeparator());
+		sb.append(green("----------------------------- Response -----------------------------")).append(StringUtil.lineSeparator());
 		if (StringUtils.hasText(header)) {
 			sb.append(header).append(StringUtil.lineSeparator());
 		}
 		sb.append(String.format("MID: %d, Type: %s, Token: %s, RTT: %sms", r.getMID(), cyan(r.getType().toString()), r.getTokenString(), rtt)).append(StringUtil.lineSeparator());
 		sb.append(String.format("Options: %s", r.getOptions().toString())).append(StringUtil.lineSeparator());
 		sb.append(String.format("Status : %s, Payload: %dB", status, r.getPayloadSize())).append(StringUtil.lineSeparator());
-		sb.append(green("................................... Payload ....................................")).append(StringUtil.lineSeparator());
+		sb.append(green("............................. Payload ..............................")).append(StringUtil.lineSeparator());
 		if (r.getPayloadSize() > 0 && MediaTypeRegistry.isPrintable(r.getOptions().getContentFormat())) {
 			sb.append(prettyPayload(r)).append(StringUtil.lineSeparator());
 		}
-		sb.append(green("--------------------------------------------------------------------------------"));
+		sb.append(green("--------------------------------------------------------------------"));
 
 		return sb.toString();
 	}

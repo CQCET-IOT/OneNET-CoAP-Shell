@@ -314,7 +314,8 @@ public class CoapShellCommands implements ApplicationEventPublisherAware {
 			@ShellOption(defaultValue = ShellOption.NULL, help = "message payload file") File payloadFile,
 			@ShellOption(defaultValue = COAP_TEXT_PLAIN, help = "payload content-type", valueProvider = ContentTypeValueProvider.class) String format,
 			@ShellOption(defaultValue = COAP_TEXT_PLAIN, help = "accepted response content-type", valueProvider = ContentTypeValueProvider.class) String accept,
-			@ShellOption(defaultValue = "false", help = "If set an asynchronous Post will be performed") boolean async) throws IOException, ConnectorException {
+			@ShellOption(defaultValue = "false", help = "If set an asynchronous Post will be performed") boolean async,
+			@ShellOption(defaultValue = ShellOption.NULL, help = "OneNET Token") String token) throws IOException, ConnectorException {
 
 		Assert.isTrue(payloadFile == null || payloadFile.exists(),
 				"Payload file [" + payloadFile + "] doesn't exists!");
@@ -333,12 +334,14 @@ public class CoapShellCommands implements ApplicationEventPublisherAware {
 						coapContentType(format), coapContentType(accept));
 			}
 			else {
-				CoapResponse response = coapClient.post(payloadContent,
-						coapContentType(format), coapContentType(accept));
-				/*
-				CoapResponse response = coapClient.post(payloadContent,
-						coapContentType(format), coapContentType(accept), token);
-				 */
+			    CoapResponse response;
+			    if (token == null) {
+					response = coapClient.post(payloadContent, coapContentType(format), coapContentType(accept));
+				} else {
+					Token realToken = new Token(StringUtil.hex2ByteArray(token));
+					response = coapClient.post(payloadContent, coapContentType(format), coapContentType(accept), realToken);
+				}
+
 				result.append(PrintUtils.prettyPrint(response, requestInfo("POST", baseUri + path, async)));
 			}
 		}
