@@ -1,6 +1,6 @@
 ## CoAP Shell for OneNET
 
-这是一个改编自 [CoAP Shell](https://github.com/tzolov/coap-shell) 项目的命令行工具，可以用于测试 OneNET Studio 平台的 CoAP 设备接入。原项目的文档可以参考 [这里]()。
+这是一个改编自 [CoAP Shell](https://github.com/tzolov/coap-shell) 项目的命令行工具，可以用于测试 OneNET Studio 平台的 CoAP 设备接入。原项目的文档可以参考 [这里](https://github.com/CQCET-IOT/OneNET-CoAP-Shell/blob/master/doc/README.adoc)。
 
 ### 编译
 
@@ -10,17 +10,21 @@
 git clone https://github.com/CQCET-IOT/coap-shell.git
 ```
 
-Maven 自动下载完成所有依赖库以后，将项目中的 *modified-jar\californium-core-2.6.3.jar* 拷贝到 Maven 仓库中，去替换自动下载的 *californium-core-2.6.3.jar*。比如我的依赖库会下载到 *F:\ProgramEnv\mvnRepo\org\eclipse\californium\californium-core\2.6.3\californium-core-2.6.3.jar*，其中的仓库路径 *F:\ProgramEnv\mvnRepo* 是在 Maven 配置文件 *settings.xml* 中配置的。
+使用 Maven package 打包之后，会自动下载完成所有依赖库。此时会有编译错误，提示找不到合适的方法，这是因为我修改了 *californium-core-2.6.3.jar* 中的 *CoapClient.java* 文件，添加了一个重载的 `post(String, int, int, Token)` 函数。
+
+将项目中的 *modified-jar\californium-core-2.6.3.jar* 拷贝到 Maven 仓库中，替换自动下载的 *californium-core-2.6.3.jar*。比如我的依赖库会下载到 *F:\ProgramEnv\mvnRepo\org\eclipse\californium\californium-core\2.6.3\californium-core-2.6.3.jar*，其中的仓库路径 *F:\ProgramEnv\mvnRepo* 是在 Maven 配置文件 *settings.xml* 中配置的。
+
+替换完成之后，关闭 IEDA，重新打开项目，再次 package 打包，错误提示会消失，也能够编译打包成功。
 
 ### 使用
 
-编译得到 *coap-shell-1.1.2-SNAPSHOT.jar*，使用下述命令将其启动起来：
+编译得到 *coap-shell-1.1.2-SNAPSHOT.jar*，在 cmd 窗口中使用下述命令将其启动起来：
 
 ```
 java -jar coap-shell-1.1.2-SNAPSHOT.jar
 ```
 
-运行后，会打开 CoAP Shell 窗口，这是一个命令行工具。
+运行后，会打开 CoAP Shell 窗口，这是一个命令行工具，其 Banner 如下：
 
 ```
   _____     ___   ___     ______       ____
