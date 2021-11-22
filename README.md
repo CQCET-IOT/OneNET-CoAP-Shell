@@ -83,3 +83,129 @@ Status : 205-Reset Content, Payload: 0B
 
 可以看到，这个 POST 指令执行成功。此时前往 OneNET Studio 就可以看到刚刚上传的字符串了。
 
+### 改造过程（供开发者参考）
+
+CoAP Shell 原项目在不修改任何代码的情况下，是可以连接到 OneNET Studio 平台的，而且可以完成设备登录，平台上也会显示设备在线。
+
+但是原项目将登录后服务器返回的 Token 按照 UTF-8 输出，显示为乱码（未能以十六进制打印），也不能手动设置报文的 Token。要想实现向 OneNET Studio 上报数据，就必须对其进行改造。
+
+打印十六进制的 Token 比较简单，在 CoAP Shell 上修改就可以完成；手动设置报文的 Token，则必须修改 CoAP Shell 所依赖的 [californium](https://github.com/eclipse/californium) 库。
+
+
+#### 打印十六进制Token
+
+在 *src/main/java/io/datalake/coap/coapshell/util/PrintUtils.java* 中增加下述函数，用于将 Token 按照十六进制打印输出：
+
+```
+/**
+ * 字节流类型的payload，转化为十六进制进行显示
+ * @param text
+ * @return
+ */
+private static String prettyStream(byte[] text) {
+	try {
+		Token token = new Token(text);
+		return token.getAsString();
+	}
+	catch (Exception e) {
+		return text.toString();
+	}
+}
+```
+
+并且在 `prettyPayload()` 函数中增加一个 else if 判断，并且调用上面的 `prettyStream()`：
+
+```
+public static String prettyPayload(Response r) {
+	...
+	else if (r.getOptions().toString().contains("$sys")) { /* OneNET登录返回此种类型的ACK，payload中为后续通信的Token */
+		return cyan(prettyStream(r.getPayload()));
+	}
+	return r.getPayloadString();
+}
+```
+
+这里修改完成以后，CoAP Shell 打印的 Token 就可以正常显示出来了。前面已经看到过 Token 输出的效果。
+
+
+#### 手动设置报文Token
+
+CoAP Shell 依赖于 californium 2.6.3，因此要下载 californium 2.6.3 版本的代码。
+
+查看代码发现，californium 重载了多种 `post()` 方法，但无一例外都使用了类似下面的方法：
+
+```
+public CoapResponse post(String payload, int format, int accept) throws ConnectorException, IOException {
+    Request request = this.newPost();
+    request.setPayload(payload);
+    request.getOptions().setContentFormat(format);
+    request.getOptions().setAccept(accept);
+    this.assignClientUriIfEmpty(request);
+    return this.synchronous(request);
+}
+```
+
+这些 `post()` 方法中，都是首先初始化一个 *Request* 对象，然后设置 payload 和 option，但都没有设置 Token，所以需要重载一个新的 `post()` 方法才行，将 Token 作为参数传进去，在里面设置 Token 然后发送出去。
+
+修改 *org/eclipse/californium/core/CoapClient.java*，在其中加入重载的 `post(String, int, int, Token)` 函数，该函数支持携带 Token 作为参数，修改后的 *CoapClient.java* 放到了 [这里](https://gist.github.com/morgengc/13fb8137dc2d84e6eb670a49f334334b)，L602-L623 就是重载的 `post()` 函数，内容如下：
+
+```
+/**
+ * Sends a POST request with the specified payload, the specified content
+ * format and the specified Accept option and blocks until the response is
+ * available.
+ *
+ * @param payload the payload
+ * @param format the Content-Format
+ * @param accept the Accept option
+ * @param token token returned by OneNET
+ * @return the CoAP response
+ * @throws ConnectorException if an issue specific to the connector occurred
+ * @throws IOException if any other issue (not specific to the connector) occurred
+ */
+public CoapResponse post(String payload, int format, int accept, Token token) throws ConnectorException, IOException {
+	Request request = newPost();
+	request.setToken(token);
+	request.setPayload(payload);
+	request.getOptions().setContentFormat(format);
+	request.getOptions().setAccept(accept);
+	assignClientUriIfEmpty(request);
+	return synchronous(request);
+}
+```
+
+对 californium 库的修改，只需要添加上面的重载函数就完成了。不过重新编译这个库有点小麻烦。
+
+起初设想是重新完整编译 californium 2.6.3 版本的代码，重载后重新编译得到 jar 包，再手动安装到 Maven 仓库中。但后来发现，2.6.3 版本的代码并没有严格对应 POM 中依赖那个 2.6.3 版本库，它编译出来是 2.6.0 版本的 jar 包。
+
+也不想多花时间验证其他版本了。所以我只能进行局部替换，把 2.6.3 源码编译出来的 *CoapClient.class* 手动替换到 Maven 自动下载的 *californium-core-2.6.3.jar* 库中。理论上这样做可以了。但是 jar 包对 class 文件做了 RSA 校验，因此还需要把 *META-INF* 目录下的 *\*.RSA*, *\*.SF* 文件删除掉，强制程序在执行时不进行校验。这就是本项目 *modified-jar\californium-core-2.6.3.jar* 的由来。
+
+依赖库增加了设置 Token 功能，回过来，CoAP Shell 中就需要调用这个功能。
+
+修改 CoAP Shell 的 *src/main/java/io/datalake/coap/coapshell/command/CoapShellCommands.java* 文件中 POST 命令的逻辑，增加一个 Token 参数，并且调用前面重载的 `post()` 函数。
+
+```
+public String post(
+        ...
+		@ShellOption(defaultValue = ShellOption.NULL, help = "OneNET Token") String token) throws IOException, ConnectorException {
+
+        ...
+
+		} else {
+		    CoapResponse response;
+		    if (token == null) {
+				response = coapClient.post(payloadContent, coapContentType(format), coapContentType(accept));
+			} else {
+				Token realToken = new Token(StringUtil.hex2ByteArray(token));
+				response = coapClient.post(payloadContent, coapContentType(format), coapContentType(accept), realToken);
+			}
+
+			result.append(PrintUtils.prettyPrint(response, requestInfo("POST", baseUri + path, async)));
+		}
+	}
+	
+	...
+}
+```
+
+最后在执行上报属性的指令时，增加一个 `--token` 参数，就可以啦！
