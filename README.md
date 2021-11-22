@@ -6,6 +6,8 @@ OneNET 官方提供了一个 Studio 模拟器，在模拟器中可以采用 CoAP
 
 ### 编译
 
+> 直接使用编译好的 compiled-jar\coap-shell-1.1.2-SNAPSHOT.jar 也行，可以跳过编译环节
+
 克隆本项目：
 
 ```
