@@ -14,7 +14,12 @@ git clone https://github.com/CQCET-IOT/coap-shell.git
 
 使用 Maven package 打包之后，会自动下载完成所有依赖库。此时会有编译错误，提示找不到合适的方法，这是因为我修改了 *californium-core-2.6.3.jar* 中的 *CoapClient.java* 文件，添加了一个重载的 `post(String, int, int, Token)` 函数。
 
-将项目中的 *modified-jar\californium-core-2.6.3.jar* 拷贝到 Maven 仓库中，替换自动下载的 *californium-core-2.6.3.jar*。比如我的依赖库会下载到 *F:\ProgramEnv\mvnRepo\org\eclipse\californium\californium-core\2.6.3\californium-core-2.6.3.jar*，其中的仓库路径 *F:\ProgramEnv\mvnRepo* 是在 Maven 配置文件 *settings.xml* 中配置的。
+将项目中的 *modified-jar\californium-core-2.6.3.jar* 拷贝到 Maven 仓库中，替换自动下载的 *californium-core-2.6.3.jar*。
+
+比如我的依赖库会下载到 *F:\ProgramEnv\mvnRepo\org\eclipse\californium\californium-core\2.6.3\californium-core-2.6.3.jar*，其中：
+
+- 仓库路径 *F:\ProgramEnv\mvnRepo* 是在 Maven 配置文件 *settings.xml* 中配置的
+- 库路径 *org\eclipse\californium\californium-core\2.6.3* 是 Maven 按照库的 groupId, artifactId 和 version 三个字段创建的
 
 替换完成之后，关闭 IEDA，重新打开项目，再次 package 打包，错误提示会消失，也能够编译打包成功。
 
