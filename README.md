@@ -11,7 +11,7 @@ OneNET 官方提供了一个 Studio 模拟器，在模拟器中可以采用 CoAP
 克隆本项目：
 
 ```
-git clone https://github.com/CQCET-IOT/coap-shell.git
+git clone https://github.com/CQCET-IOT/OneNET-CoAP-Shell.git
 ```
 
 使用 Maven package 打包之后，会自动下载完成所有依赖库。此时会有编译错误，提示找不到合适的方法，这是因为我修改了 *californium-core-2.6.3.jar* 中的 *CoapClient.java* 文件，添加了一个重载的 `post(String, int, int, Token)` 函数。
