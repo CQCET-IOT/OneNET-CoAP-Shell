@@ -1,6 +1,6 @@
 ## CoAP Shell for OneNET
 
-这是一个改编自 [CoAP Shell](https://github.com/tzolov/coap-shell) 项目的命令行工具，可以用于测试 OneNET Studio 平台的 CoAP 设备接入。原项目的文档可以参考 [这里](https://github.com/CQCET-IOT/OneNET-CoAP-Shell/blob/master/doc/README.adoc)。
+这是一个改编自 [CoAP Shell](https://github.com/tzolov/coap-shell) 项目的命令行工具，可以用于测试 OneNET Studio 平台的 CoAP 设备接入。
 
 OneNET 官方提供了一个 Studio 模拟器，在模拟器中可以采用 CoAP 协议接入设备，但那个模拟器太自动化了，替用户完成了大量工作，体会不到 CoAP 交互的过程。本项目比起官方模拟器来，能使用户更深入地了解 CoAP 接入的细节。
 
